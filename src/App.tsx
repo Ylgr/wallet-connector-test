@@ -1,13 +1,13 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import SignClient from "@walletconnect/sign-client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 
-
 function App() {
-  let signClient: SignClient
-
+  let [signClient, setSighClient] = useState(new SignClient());
+  let [session, setSession] = useState(null);
+  let [web3, setWeb3] = useState(null);
   useEffect(() => {
     SignClient.init({
       projectId: "67d2e678cb52cc8bebb115206180b1ac",
@@ -18,7 +18,7 @@ function App() {
         icons: ["https://walletconnect.com/walletconnect-logo.png"],
       },
     }).then((_signClient) => {
-      signClient = _signClient;
+      setSighClient(_signClient);
       // @ts-ignore
       _signClient.on("session_event", ({ event }) => {
         console.log('session_event: ', event)
@@ -45,12 +45,14 @@ function App() {
   // @ts-ignore
   const onSessionConnected = async (session) => {
     console.log('session: ', session)
+    setSession(session)
   }
 
   const connect = async () => {
     try {
       if(!signClient) return
-      const { uri, approval } = await signClient.connect({
+      const { uri, approval } = await signClient.connect(
+          {
         // Optionally: pass a known prior pairing (e.g. from `signClient.core.pairing.getPairings()`) to skip the `uri` step.
         // pairingTopic: pairing?.topic,
         // Provide the namespaces and chains (e.g. `eip155` for EVM-based chains) we want to use in this session.
@@ -63,11 +65,12 @@ function App() {
               "personal_sign",
               "eth_signTypedData",
             ],
-            chains: ["eip155:1"],
+            chains: ["eip155:1", "eip155:56"],
             events: ["chainChanged", "accountsChanged"],
           },
         },
-      });
+      }
+      );
 
       // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
       if (uri) {
@@ -88,6 +91,43 @@ function App() {
     }
   }
 
+  const signMessage = async () => {
+    const result = await signClient.request({
+      // @ts-ignore
+      topic: session.topic,
+      chainId: "eip155:56",
+      request: {
+        method: "personal_sign",
+        params: [
+          '0x49207265616c6c792077616e7420746f207374617920696e20796f757220686f757365',
+          '0x0000000000000000000000000000000000000000'
+        ],
+      },
+    });
+    console.log('result: ', result)
+  }
+
+  const signTransaction = async () => {
+    const result = await signClient.request({
+      // @ts-ignore
+      topic: session.topic,
+      chainId: "eip155:56",
+      request: {
+        method: "eth_signTransaction",
+        params: [
+          {
+            from: "0x66bF1c3dd467D691132AC9260d6ae3c7cAd0D632",
+            to: "0xF4402fE2B09da7c02504DC308DBc307834CE56fE",
+            data:
+                "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675",
+            value: "0", // 2441406250
+          },
+        ],
+      },
+    });
+    console.log('result: ', result)
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -98,6 +138,8 @@ function App() {
         <a onClick={() => connect()}>
           Connect Wallet connector
         </a>
+        <button disabled={session === null} onClick={() => signMessage()}>Sign message</button>
+        <button disabled={session === null} onClick={() => signTransaction()}>Sign transaction</button>
       </header>
     </div>
   );
