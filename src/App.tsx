@@ -3,11 +3,13 @@ import logo from './logo.svg';
 import './App.css';
 import SignClient from "@walletconnect/sign-client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
-
+import { ConnectButton, useAccount } from '@web3modal/react';
 function App() {
   let [signClient, setSighClient] = useState(new SignClient());
   let [session, setSession] = useState(null);
   let [web3, setWeb3] = useState(null);
+  const { address } = useAccount().account
+
   useEffect(() => {
     SignClient.init({
       projectId: "67d2e678cb52cc8bebb115206180b1ac",
@@ -140,6 +142,7 @@ function App() {
         </a>
         <button disabled={session === null} onClick={() => signMessage()}>Sign message</button>
         <button disabled={session === null} onClick={() => signTransaction()}>Sign transaction</button>
+        <h1>{address ? address : 'none'} </h1> : <ConnectButton />
       </header>
     </div>
   );
