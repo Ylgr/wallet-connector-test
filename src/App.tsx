@@ -4,15 +4,15 @@ import './App.css';
 import SignClient from "@walletconnect/sign-client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import { ConnectButton, useAccount } from '@web3modal/react';
+import Token from "./Token";
 function App() {
   let [signClient, setSighClient] = useState(new SignClient());
   let [session, setSession] = useState(null);
   let [web3, setWeb3] = useState(null);
-  const { address } = useAccount().account
-
+  const { account: {address, isConnected}, account } = useAccount()
   useEffect(() => {
     SignClient.init({
-      projectId: "67d2e678cb52cc8bebb115206180b1ac",
+      projectId: process.env.REACT_APP_WALLET_CONNECTOR_PROJECT_ID,
       metadata: {
         name: "Example Dapp",
         description: "Example Dapp",
@@ -133,17 +133,16 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
         <a onClick={() => connect()}>
           Connect Wallet connector
         </a>
         <button disabled={session === null} onClick={() => signMessage()}>Sign message</button>
         <button disabled={session === null} onClick={() => signTransaction()}>Sign transaction</button>
-        <h1>{address ? address : 'none'} </h1> : <ConnectButton />
+        <h1>{address ? address : 'none'} </h1>
+        <ConnectButton />
+        {isConnected && <Token />}
       </header>
+
     </div>
   );
 }

@@ -8,19 +8,27 @@ import {Web3Modal} from "@web3modal/react";
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
-const config = {
-    projectId: "67d2e678cb52cc8bebb115206180b1ac",
-    theme: 'light' as "light",
-    accentColor: "default" as "default",
-    ethereum: {
-        appName: 'web3Modal',
-        autoConnect: true
-    }
-};
 root.render(
   <React.StrictMode>
     <App />
-      <Web3Modal config={config} />
+      <Web3Modal config={{
+          projectId: process.env.REACT_APP_WALLET_CONNECTOR_PROJECT_ID as string,
+          theme: 'light' as "light",
+          accentColor: "default" as "default",
+          ethereum: {
+              appName: 'web3Modal',
+              autoConnect: true,
+              chains: [
+                  {
+                      id: 97,
+                      testnet: true,
+                      name: "BNB chain testnet",
+                      network: "",
+                      rpcUrls: {default: "https://data-seed-prebsc-1-s1.binance.org:8545"}
+                  }
+              ]
+          }
+      }} />
 
   </React.StrictMode>
 );
